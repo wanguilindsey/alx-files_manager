@@ -1,10 +1,29 @@
 import express from 'express';
 import controllerRouting from './routes/index';
+import session from 'express-session';
+import connectRedis from 'connect-redis';
+import redisClient from './utils/redis';
 
 const app = express();
+const RedisStore = connectRedis(session);
+
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
+
+app.use(
+  session({
+    store: new RedisStore({ client: redisClient }),
+    secret: 'Wangui',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Set to true if using HTTPS in production
+      httpOnly: true, // Ensures the cookie is only sent over HTTP(S), not accessible via JavaScript
+      maxAge: 1000 * 60 * 60 * 24, // 1 day in milliseconds
+    },
+  })
+);
 
 controllerRouting(app);
 
