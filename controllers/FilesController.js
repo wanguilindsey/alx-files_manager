@@ -65,3 +65,22 @@ class FilesController {
     return response.status(201).send({ ...fileInsertData, id: result.insertedId });
   }
 }
+
+static async getShow(request, response) {
+  const { userId } = await getIdAndKey(request);
+  const user = await dbClient.users.findOne({ _id: ObjectId(userId) });
+  if (!isValidUser(userId) || !user) return response.status(401).send({ error: 'Unauthorized' });
+
+  const fileId = request.params.id || '';
+  const file = await dbClient.files.findOne({ _id: ObjectId(fileId), userId: user._id });
+  if (!file) return response.status(404).send({ error: 'Not found' });
+
+  return response.status(200).send({
+    id: file._id,
+    userId: file.userId,
+    name: file.name,
+    type: file.type,
+    isPublic: file.isPublic,
+    parentId: file.parentId,
+  });
+}
