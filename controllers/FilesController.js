@@ -166,3 +166,36 @@ static async putUnpublish(request, response) {
     parentId: file.parentId,
   });
 }
+
+static async getFile(request, response) {
+  const fileId = request.params.id || '';
+  const size = request.query.size || 0;
+
+  const file = await dbClient.files.findOne({ _id: ObjectId(fileId) });
+  if (!file) return response.status(404).send({ error: 'Not found' });
+
+  const { isPublic, userId, type } = file;
+  const { userId: user } = await getIdAndKey(request);
+
+  if ((!isPublic && !user) || (user && userId.toString() !== user && !isPublic)) {
+    return response.status(404).send({ error: 'Not found' });
+  }
+
+  if (type === 'folder') {
+    return response.status(400).send({ error: 'A folder doesn\'t have content' });
+  }
+
+  const path = size === 0 ? file.localPath : `${file.localPath}_${size}`;
+
+  try {
+    const fileData = await fsPromises.readFile(path);
+    const mimeType = mime.contentType(file.name);
+    response.setHeader('Content-Type', mimeType);
+    return response.status(200).send(fileData);
+  } catch (err) {
+    return response.status(404).send({ error: 'Not found' });
+  }
+}
+}
+
+export default FilesController;
