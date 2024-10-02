@@ -122,3 +122,25 @@ static async getIndex(request, response) {
 
   return response.status(200).send(files);
 }
+
+static async putPublish(request, response) {
+  const { userId } = await getIdAndKey(request);
+  const user = await dbClient.users.findOne({ _id: ObjectId(userId) });
+  if (!isValidUser(userId) || !user) return response.status(401).send({ error: 'Unauthorized' });
+
+  const fileId = request.params.id || '';
+  let file = await dbClient.files.findOne({ _id: ObjectId(fileId), userId: user._id });
+  if (!file) return response.status(404).send({ error: 'Not found' });
+
+  await dbClient.files.updateOne({ _id: ObjectId(fileId) }, { $set: { isPublic: true } });
+  file = await dbClient.files.findOne({ _id: ObjectId(fileId), userId: user._id });
+
+  return response.status(200).send({
+    id: file._id,
+    userId: file.userId,
+    name: file.name,
+    type: file.type,
+    isPublic: file.isPublic,
+    parentId: file.parentId,
+  });
+}
