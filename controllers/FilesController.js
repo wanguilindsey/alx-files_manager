@@ -84,3 +84,41 @@ static async getShow(request, response) {
     parentId: file.parentId,
   });
 }
+
+static async getIndex(request, response) {
+  const { userId } = await getIdAndKey(request);
+  const user = await dbClient.users.findOne({ _id: ObjectId(userId) });
+  if (!isValidUser(userId) || !user) return response.status(401).send({ error: 'Unauthorized' });
+
+  let parentId = request.query.parentId || 0;
+  if (parentId !== '0') {
+    if (!isValidUser(parentId)) return response.status(401).send({ error: 'Unauthorized' });
+
+    parentId = ObjectId(parentId);
+    const folder = await dbClient.files.findOne({ _id: ObjectId(parentId) });
+    if (!folder || folder.type !== 'folder') return response.status(200).send([]);
+  }
+
+  const page = parseInt(request.query.page, 10) || 0;
+  const agg = { $and: [{ parentId }] };
+  const aggData = parentId === 0
+    ? [{ $skip: page * 20 }, { $limit: 20 }]
+    : [{ $match: agg }, { $skip: page * 20 }, { $limit: 20 }];
+
+  const pageFiles = await dbClient.files.aggregate(aggData);
+  const files = [];
+
+  await pageFiles.forEach((file) => {
+    const fileObj = {
+      id: file._id,
+      userId: file.userId,
+      name: file.name,
+      type: file.type,
+      isPublic: file.isPublic,
+      parentId: file.parentId,
+    };
+    files.push(fileObj);
+  });
+
+  return response.status(200).send(files);
+}
