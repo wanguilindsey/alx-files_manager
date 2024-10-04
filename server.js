@@ -1,12 +1,10 @@
 import express from 'express';
-import controllerRouting from './routes/index';
 import session from 'express-session';
-import connectRedis from 'connect-redis';
+import RedisStore from 'connect-redis';
+import controllerRouting from './routes/index';
 import redisClient from './utils/redis';
 
 const app = express();
-const RedisStore = connectRedis(session);
-
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
@@ -22,7 +20,7 @@ app.use(
       httpOnly: true, // Ensures the cookie is only sent over HTTP(S), not accessible via JavaScript
       maxAge: 1000 * 60 * 60 * 24, // 1 day in milliseconds
     },
-  })
+  }),
 );
 
 controllerRouting(app);

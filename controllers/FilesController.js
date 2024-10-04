@@ -7,7 +7,7 @@ import dbClient from '../utils/db';
 import { getIdAndKey, isValidUser } from '../utils/users';
 
 class FilesController {
-  static async postUpload (request, response) {
+  static async postUpload(request, response) {
     const fileQ = new Queue('fileQ');
     const dir = process.env.FOLDER_PATH || '/tmp/files_manager';
 
@@ -40,7 +40,7 @@ class FilesController {
       name: fileName,
       type: fileType,
       isPublic: publicFile,
-      parentId
+      parentId,
     };
 
     if (fileType === 'folder') {
@@ -51,7 +51,7 @@ class FilesController {
         name: fileInsertData.name,
         type: fileInsertData.type,
         isPublic: fileInsertData.isPublic,
-        parentId: fileInsertData.parentId
+        parentId: fileInsertData.parentId,
       });
     }
 
@@ -75,7 +75,7 @@ class FilesController {
 
     fileQ.add({
       userId: fileInsertData.userId,
-      fileId: fileInsertData._id
+      fileId: fileInsertData._id,
     });
 
     return response.status(201).send({
@@ -84,11 +84,11 @@ class FilesController {
       name: fileInsertData.name,
       type: fileInsertData.type,
       isPublic: fileInsertData.isPublic,
-      parentId: fileInsertData.parentId
+      parentId: fileInsertData.parentId,
     });
   }
 
-  static async getShow (request, response) {
+  static async getShow(request, response) {
     const { userId } = await getIdAndKey(request);
     if (!isValidUser(userId)) return response.status(401).send({ error: 'Unauthorized' });
 
@@ -105,11 +105,11 @@ class FilesController {
       name: file.name,
       type: file.type,
       isPublic: file.isPublic,
-      parentId: file.parentId
+      parentId: file.parentId,
     });
   }
 
-  static async getIndex (request, response) {
+  static async getIndex(request, response) {
     const { userId } = await getIdAndKey(request);
     if (!isValidUser(userId)) return response.status(401).send({ error: 'Unauthorized' });
 
@@ -143,7 +143,7 @@ class FilesController {
         name: file.name,
         type: file.type,
         isPublic: file.isPublic,
-        parentId: file.parentId
+        parentId: file.parentId,
       };
       files.push(fileObj);
     });
@@ -151,7 +151,7 @@ class FilesController {
     return response.status(200).send(files);
   }
 
-  static async putPublish (request, response) {
+  static async putPublish(request, response) {
     const { userId } = await getIdAndKey(request);
     if (!isValidUser(userId)) return response.status(401).send({ error: 'Unauthorized' });
 
@@ -172,11 +172,11 @@ class FilesController {
       name: file.name,
       type: file.type,
       isPublic: file.isPublic,
-      parentId: file.parentId
+      parentId: file.parentId,
     });
   }
 
-  static async putUnpublish (request, response) {
+  static async putUnpublish(request, response) {
     const { userId } = await getIdAndKey(request);
     if (!isValidUser(userId)) return response.status(401).send({ error: 'Unauthorized' });
 
@@ -197,11 +197,11 @@ class FilesController {
       name: file.name,
       type: file.type,
       isPublic: file.isPublic,
-      parentId: file.parentId
+      parentId: file.parentId,
     });
   }
 
-  static async getFile (request, response) {
+  static async getFile(request, response) {
     const fileId = request.params.id || '';
     const size = request.query.size || 0;
 
